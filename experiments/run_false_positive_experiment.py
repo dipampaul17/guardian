@@ -12,7 +12,7 @@ from typing import Dict, List, Any
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.config import DEMO_MODE, VARIANCE_THRESHOLD, USE_BINARY_JUDGE, UNSAFE_VOTE_THRESHOLD
+from src.config import DEMO_MODE, DIVERGENCE_THRESHOLD, USE_BINARY_JUDGE, UNSAFE_VOTE_THRESHOLD
 from src.judge import (
     judge_prompt, 
     get_model_responses, 
@@ -36,7 +36,7 @@ def run_experiment(
 ) -> Dict[str, Any]:
     """Run the false positive experiment."""
     if threshold is None:
-        threshold = VARIANCE_THRESHOLD
+        threshold = DIVERGENCE_THRESHOLD
     if use_binary is None:
         use_binary = USE_BINARY_JUDGE
     
@@ -322,7 +322,7 @@ Examples:
         "--threshold",
         type=float,
         default=None,
-        help=f"Divergence threshold for legacy mode (default: {VARIANCE_THRESHOLD})"
+        help=f"Divergence threshold for legacy mode (default: {DIVERGENCE_THRESHOLD})"
     )
     parser.add_argument(
         "--output",

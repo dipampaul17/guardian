@@ -22,7 +22,7 @@ def _get_float_env(key: str, default: float) -> float:
         return default
 
 
-VARIANCE_THRESHOLD: float = _get_float_env("VARIANCE_THRESHOLD", 5.0)
+DIVERGENCE_THRESHOLD: float = _get_float_env("DIVERGENCE_THRESHOLD", 5.0)
 
 USE_BINARY_JUDGE: bool = _get_bool_env("USE_BINARY_JUDGE", True)
 UNSAFE_VOTE_THRESHOLD: int = int(os.getenv("UNSAFE_VOTE_THRESHOLD", "2"))

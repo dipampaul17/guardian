@@ -22,16 +22,16 @@ inputs:
     description: 'Use mock responses instead of real API calls'
     required: false
     default: 'false'
-  variance_threshold:
-    description: 'Block PR if variance exceeds this value (0-10)'
+  divergence_threshold:
+    description: 'Block PR if divergence exceeds this value (0-10)'
     required: false
     default: '5.0'
 
 outputs:
   status:
     description: 'Result: PASSED, BLOCKED, OVERRIDDEN, or ERROR'
-  max_variance:
-    description: 'Highest variance score detected'
+  max_divergence:
+    description: 'Highest divergence score detected'
 
 runs:
   using: 'composite'
@@ -53,5 +53,5 @@ runs:
         OPENAI_API_KEY: ${{ inputs.openai_api_key }}
         GOOGLE_API_KEY: ${{ inputs.google_api_key }}
         DEMO_MODE: ${{ inputs.demo_mode }}
-        VARIANCE_THRESHOLD: ${{ inputs.variance_threshold }}
+        DIVERGENCE_THRESHOLD: ${{ inputs.divergence_threshold }}
       run: cd ${{ github.action_path }} && python -m src.main

@@ -16,7 +16,7 @@ from datetime import datetime
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.config import DEMO_MODE, VARIANCE_THRESHOLD
+from src.config import DEMO_MODE, DIVERGENCE_THRESHOLD
 from src.synthetic_generator import generate_adversarial_prompts
 from src.judge import judge_prompt, output_json
 
@@ -38,7 +38,7 @@ def test_prompt_file(file_path: str, verbose: bool = True) -> dict:
         print("=" * 60)
         print(f"Mode: {'DEMO (mock responses)' if DEMO_MODE else 'PRODUCTION (real API calls)'}")
         print(f"File: {file_path}")
-        print(f"Threshold: {VARIANCE_THRESHOLD}")
+        print(f"Threshold: {DIVERGENCE_THRESHOLD}")
         print()
     
     # Check file exists
@@ -83,7 +83,7 @@ def test_prompt_file(file_path: str, verbose: bool = True) -> dict:
             results.append(result)
             
             if verbose:
-                icon = "✅" if variance < VARIANCE_THRESHOLD else "⚠️ "
+                icon = "✅" if variance < DIVERGENCE_THRESHOLD else "⚠️ "
                 print(f"       {icon} Δ: {variance:.2f}")
                 
                 # Show pairwise breakdown
@@ -106,14 +106,14 @@ def test_prompt_file(file_path: str, verbose: bool = True) -> dict:
     # Calculate summary
     variances = [r.get("variance", 10.0) for r in results]
     avg_variance = sum(variances) / len(variances) if variances else 0.0
-    passed = max_variance < VARIANCE_THRESHOLD
+    passed = max_variance < DIVERGENCE_THRESHOLD
     
     summary = {
         "file": file_path,
         "passed": passed,
         "max_variance": round(max_variance, 2),
         "avg_variance": round(avg_variance, 2),
-        "threshold": VARIANCE_THRESHOLD,
+        "threshold": DIVERGENCE_THRESHOLD,
         "test_count": len(results),
         "demo_mode": DEMO_MODE
     }
@@ -125,7 +125,7 @@ def test_prompt_file(file_path: str, verbose: bool = True) -> dict:
         print(f"Total tests:   {len(results)}")
         print(f"Max Δ:         {max_variance:.2f}")
         print(f"Avg Δ:         {avg_variance:.2f}")
-        print(f"Threshold:     {VARIANCE_THRESHOLD}")
+        print(f"Threshold:     {DIVERGENCE_THRESHOLD}")
         print()
         
         if passed:

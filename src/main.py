@@ -12,7 +12,7 @@ from typing import List, Dict, Any, Optional
 from github import Github
 
 from src.config import (
-    VARIANCE_THRESHOLD,
+    DIVERGENCE_THRESHOLD,
     DEMO_MODE,
     GITHUB_TOKEN,
     MAX_RETRIES,
@@ -100,7 +100,7 @@ def save_audit_report(results: Dict[str, Any], pr_number: int, repo_name: str) -
         "timestamp": datetime.now().isoformat(),
         "repository": repo_name,
         "pr_number": pr_number,
-        "threshold": VARIANCE_THRESHOLD,
+        "threshold": DIVERGENCE_THRESHOLD,
         "demo_mode": DEMO_MODE,
         **results
     }
@@ -128,7 +128,7 @@ def post_pr_comment(pr, status: str, max_variance: float, details: str = ""):
 
 **Status:** {emoji} {status}
 **Max Divergence (Δ):** {max_variance:.2f} / 10
-**Threshold:** {VARIANCE_THRESHOLD}
+**Threshold:** {DIVERGENCE_THRESHOLD}
 **Mode:** {"DEMO" if DEMO_MODE else "PRODUCTION"}
 
 {details}
@@ -151,7 +151,7 @@ def run_parity() -> int:
     print("PARITY DIVERGENCE CHECK")
     print("=" * 60)
     print(f"Mode: {'DEMO (3 prompts, mock responses)' if DEMO_MODE else 'PRODUCTION (20 prompts, real API calls)'}")
-    print(f"Divergence Threshold: {VARIANCE_THRESHOLD}")
+    print(f"Divergence Threshold: {DIVERGENCE_THRESHOLD}")
     print()
     
     try:
@@ -273,7 +273,7 @@ def run_parity() -> int:
                         file_max_variance = max(file_max_variance, variance)
                         file_results.append(result)
                         
-                        status_icon = "✅" if variance < VARIANCE_THRESHOLD else "⚠️"
+                        status_icon = "✅" if variance < DIVERGENCE_THRESHOLD else "⚠️"
                         print(f"       {status_icon} Δ: {variance:.2f}")
                         break
                     except Exception as e:
@@ -313,10 +313,10 @@ def run_parity() -> int:
         print("📊 FINAL RESULTS")
         print("=" * 60)
         print(f"Overall Max Δ: {overall_max_variance:.2f}")
-        print(f"Threshold: {VARIANCE_THRESHOLD}")
+        print(f"Threshold: {DIVERGENCE_THRESHOLD}")
         print()
         
-        if overall_max_variance < VARIANCE_THRESHOLD:
+        if overall_max_variance < DIVERGENCE_THRESHOLD:
             status = "AUTO-APPROVED"
             print("✅ PASSED - All divergence scores below threshold")
             exit_code = 0
@@ -341,7 +341,7 @@ def run_parity() -> int:
         # Build details for PR comment
         details_lines = ["### Files Analyzed:"]
         for file_result in all_results:
-            icon = "✅" if file_result["max_variance"] < VARIANCE_THRESHOLD else "⚠️"
+            icon = "✅" if file_result["max_variance"] < DIVERGENCE_THRESHOLD else "⚠️"
             details_lines.append(f"- {icon} `{file_result['file']}` — Δ: {file_result['max_variance']:.2f}")
         
         details = "\n".join(details_lines)
@@ -405,7 +405,7 @@ def run_local(prompt_file: str = "prompts/system.txt") -> int:
     print("=" * 60)
     print(f"Mode: {'DEMO' if DEMO_MODE else 'PRODUCTION'}")
     print(f"File: {prompt_file}")
-    print(f"Threshold: {VARIANCE_THRESHOLD}")
+    print(f"Threshold: {DIVERGENCE_THRESHOLD}")
     print()
     
     # Read prompt file
@@ -439,7 +439,7 @@ def run_local(prompt_file: str = "prompts/system.txt") -> int:
             max_variance = max(max_variance, variance)
             results.append(result)
             
-            icon = "✅" if variance < VARIANCE_THRESHOLD else "⚠️"
+            icon = "✅" if variance < DIVERGENCE_THRESHOLD else "⚠️"
             print(f"       {icon} Δ: {variance:.2f}")
         except Exception as e:
             print(f"       ❌ Error: {e}")
@@ -452,10 +452,10 @@ def run_local(prompt_file: str = "prompts/system.txt") -> int:
     print("📊 RESULTS")
     print("=" * 60)
     print(f"Max Δ: {max_variance:.2f}")
-    print(f"Threshold: {VARIANCE_THRESHOLD}")
+    print(f"Threshold: {DIVERGENCE_THRESHOLD}")
     print()
     
-    if max_variance < VARIANCE_THRESHOLD:
+    if max_variance < DIVERGENCE_THRESHOLD:
         print("✅ WOULD PASS")
         exit_code = 0
     else:
