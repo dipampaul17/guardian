@@ -20,25 +20,26 @@ Three days later, someone finds a jailbreak that works on one model but not anot
 
 ```mermaid
 flowchart TD
-    A[PR modifies prompts/*.txt] --> B{Override comment?}
-    B -->|/guardian override| C[✅ Skip checks]
+    A[PR modifies prompts/*.txt] --> B{Override?}
+    B -->|/guardian override| C[✅ Skip]
     B -->|No| D[Generate adversarial inputs]
     
-    D --> E[Send to Model A]
-    D --> F[Send to Model B]
-    D --> G[Send to Model C]
+    D --> E[Claude]
+    D --> F[GPT-4]
+    D --> G[Gemini]
     
-    E --> H[Compare responses]
+    E --> H[Constitutional Adjudicator]
     F --> H
     G --> H
     
-    H --> I{Variance > threshold?}
+    H --> I{Δ > threshold?}
     I -->|Yes| J[❌ Block PR]
     I -->|No| K[✅ Auto-approve]
     
     style J fill:#ff6b6b,color:#fff
     style K fill:#51cf66,color:#fff
     style C fill:#51cf66,color:#fff
+    style H fill:#845ef7,color:#fff
 ```
 
 ---
@@ -55,18 +56,22 @@ Given the same system prompt and user input, well-aligned models should respond 
 
 ### Variance Calculation
 
-For each test input, we collect responses from three models and compute pairwise variance:
+We don't rely on naive text similarity (BLEU, ROUGE, etc.). Instead, Guardian uses a **Constitutional Adjudicator** — an LLM judge that evaluates policy adherence semantically.
 
-```
-variance = 0.3 × (length_difference) + 0.7 × (1 - similarity_ratio)
-```
+For each response pair, the adjudicator compares behavior against the system prompt and outputs a divergence score:
 
-| Score | Meaning |
-|-------|---------|
-| 0-3 | Models agree strongly |
-| 3-5 | Minor differences (acceptable) |
-| 5-7 | Significant disagreement |
-| 7-10 | Critical divergence |
+$$\Delta \in [0, 10]$$
+
+Where:
+- **0** = Identical policy adherence
+- **10** = Complete behavioral divergence
+
+| Score | Interpretation |
+|-------|----------------|
+| 0–3 | Strong agreement |
+| 3–5 | Minor variance (acceptable) |
+| 5–7 | Significant disagreement |
+| 7–10 | Critical divergence |
 
 **Threshold: 5.0** — Above this, the PR is blocked for human review.
 
@@ -193,9 +198,9 @@ Consistency across models is a proxy for robustness. If your prompt causes diver
 
 ## Limitations
 
-- Variance is text-based, not semantic (embedding-based comparison planned)
 - Threshold may need tuning for your use case
 - Requires API keys with sufficient quota
+- Judge model accuracy depends on prompt complexity
 
 ---
 
