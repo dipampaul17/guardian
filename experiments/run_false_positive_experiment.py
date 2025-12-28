@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
-"""
-False Positive Detection Experiment.
-
-Tests adversarial inputs designed to trigger false positives in Guardian.
-Supports binary classification and variance-based detection modes.
-"""
+"""False Positive Detection Experiment."""
 
 import os
 import sys
@@ -39,18 +34,7 @@ def run_experiment(
     threshold: float = None,
     use_binary: bool = None
 ) -> Dict[str, Any]:
-    """
-    Run the false positive experiment.
-    
-    Args:
-        inputs: List of adversarial input dicts
-        system_prompt: The system prompt to test against
-        threshold: Variance threshold (defaults to config) - only for legacy mode
-        use_binary: Use binary classification mode (defaults to config)
-    
-    Returns:
-        Experiment results
-    """
+    """Run the false positive experiment."""
     if threshold is None:
         threshold = VARIANCE_THRESHOLD
     if use_binary is None:
@@ -68,7 +52,7 @@ def run_experiment(
     if use_binary:
         print(f"Unsafe Vote Threshold: {UNSAFE_VOTE_THRESHOLD}/3 votes to block")
     else:
-        print(f"Variance Threshold: {threshold}")
+        print(f"Divergence Threshold: {threshold}")
     print(f"Total Inputs: {len(inputs)}")
     print(f"System Prompt Length: {len(system_prompt)} chars")
     print()
@@ -146,9 +130,9 @@ def run_experiment(
                 if is_flagged:
                     false_positives.append(result)
                     category_stats[category]["false_positives"] += 1
-                    print(f"         ⚠️  FALSE POSITIVE! Variance: {max_variance:.2f} (threshold: {threshold})")
+                    print(f"         ⚠️  FALSE POSITIVE! Δ: {max_variance:.2f} (threshold: {threshold})")
                 else:
-                    print(f"         ✅ Passed. Variance: {max_variance:.2f}")
+                    print(f"         ✅ Passed. Δ: {max_variance:.2f}")
                 
                 pairwise = metrics.get('pairwise', {})
                 pairwise_str = " | ".join([f"{k}: {v:.2f}" for k, v in pairwise.items()])
@@ -254,7 +238,7 @@ def print_summary(experiment_results: Dict[str, Any]):
         print(f"   Avg Unsafe Votes: {vote_stats.get('avg_unsafe_votes', 0):.2f}/3")
         print(f"   Block Threshold:  {summary['threshold']}/3 votes")
     else:
-        print("📈 Variance Statistics:")
+        print("📈 Divergence Statistics:")
         var_stats = summary.get('variance_stats', {})
         print(f"   Max: {var_stats.get('max', 0):.2f}")
         print(f"   Min: {var_stats.get('min', 0):.2f}")
@@ -269,10 +253,10 @@ def print_summary(experiment_results: Dict[str, Any]):
         if is_binary and 'avg_unsafe_votes' in stats:
             print(f"      Avg Unsafe Votes: {stats['avg_unsafe_votes']:.2f}/3")
         elif 'avg_variance' in stats:
-            print(f"      Avg Variance: {stats['avg_variance']:.2f}")
+            print(f"      Avg Δ: {stats['avg_variance']:.2f}")
     print()
     
-    print("📊 By Expected Variance Level:")
+    print("📊 By Expected Divergence Level:")
     print("-" * 50)
     for level in ['high', 'medium', 'low']:
         if level in summary['by_expected_variance']:
@@ -295,7 +279,7 @@ def print_summary(experiment_results: Dict[str, Any]):
                     for judge, verdict in fp['verdicts'].items():
                         print(f"   {judge}: {verdict.get('verdict', '?')} - {verdict.get('reason', '')[:60]}...")
             else:
-                print(f"Variance: {fp.get('actual_max_variance', 'N/A')}")
+                print(f"Δ: {fp.get('actual_max_variance', 'N/A')}")
                 if 'pairwise' in fp:
                     print(f"Pairwise: {fp['pairwise']}")
             print(f"Predicted Reason: {fp.get('predicted_reason', 'N/A')[:80]}...")
@@ -338,7 +322,7 @@ Examples:
         "--threshold",
         type=float,
         default=None,
-        help=f"Variance threshold for legacy mode (default: {VARIANCE_THRESHOLD})"
+        help=f"Divergence threshold for legacy mode (default: {VARIANCE_THRESHOLD})"
     )
     parser.add_argument(
         "--output",

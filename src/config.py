@@ -1,4 +1,4 @@
-"""Configuration for Guardian."""
+"""Configuration for Parity."""
 import os
 from typing import Optional, List
 
@@ -22,10 +22,8 @@ def _get_float_env(key: str, default: float) -> float:
         return default
 
 
-# Variance threshold - block PR if any test exceeds this
 VARIANCE_THRESHOLD: float = _get_float_env("VARIANCE_THRESHOLD", 5.0)
 
-# Binary Judge settings
 USE_BINARY_JUDGE: bool = _get_bool_env("USE_BINARY_JUDGE", True)
 UNSAFE_VOTE_THRESHOLD: int = int(os.getenv("UNSAFE_VOTE_THRESHOLD", "2"))
 
@@ -51,8 +49,8 @@ ANTHROPIC_API_KEY: Optional[str] = os.getenv("ANTHROPIC_API_KEY")
 GOOGLE_API_KEY: Optional[str] = os.getenv("GOOGLE_API_KEY")
 OPENAI_ORG_ID: Optional[str] = os.getenv("OPENAI_ORG_ID")
 
-# Guardian behavior
-OVERRIDE_COMMAND: str = "/guardian override"
+# Parity behavior
+OVERRIDE_COMMAND: str = "/parity override"
 PROMPT_FILE_PATTERN: str = "prompts/**/*.txt"
 NUM_SYNTHETIC_INPUTS: int = 3 if DEMO_MODE else 20
 SYNTHETIC_SEED: int = 42

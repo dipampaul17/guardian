@@ -1,9 +1,9 @@
-name: 'Guardian'
-description: 'Safety gate for system prompt changes using inter-model disagreement detection'
+name: 'Parity'
+description: 'CI/CD regression testing for system prompts using inter-model divergence detection'
 
 branding:
-  icon: 'shield'
-  color: 'blue'
+  icon: 'git-merge'
+  color: 'gray-dark'
 
 inputs:
   github_token:
@@ -45,7 +45,7 @@ runs:
       shell: bash
       run: pip install -r ${{ github.action_path }}/requirements.txt
 
-    - name: Run Guardian
+    - name: Run Parity
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}

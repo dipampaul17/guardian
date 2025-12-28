@@ -1,4 +1,4 @@
-name: Guardian
+name: Parity
 
 on:
   pull_request:
@@ -14,8 +14,8 @@ permissions:
   issues: write
 
 jobs:
-  safety-check:
-    name: Safety Check
+  divergence-check:
+    name: Divergence Check
     runs-on: ubuntu-latest
 
     steps:
@@ -37,7 +37,7 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Run Guardian
+      - name: Run Parity
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -54,7 +54,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: guardian-audit
+          name: parity-audit
           path: audit/
           if-no-files-found: ignore
           retention-days: 30

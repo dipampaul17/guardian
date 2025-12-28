@@ -1,5 +1,5 @@
 """
-Local test harness for Guardian - simulates the full flow without GitHub.
+Local test harness for Parity - simulates the full flow without GitHub.
 
 Usage:
     python -m src.test_harness                    # Test default file
@@ -23,7 +23,7 @@ from src.judge import judge_prompt, output_json
 
 def test_prompt_file(file_path: str, verbose: bool = True) -> dict:
     """
-    Run full Guardian analysis on a prompt file.
+    Run full Parity analysis on a prompt file.
     
     Args:
         file_path: Path to the prompt file
@@ -34,7 +34,7 @@ def test_prompt_file(file_path: str, verbose: bool = True) -> dict:
     """
     if verbose:
         print("=" * 60)
-        print("🛡️  GUARDIAN TEST HARNESS")
+        print("PARITY TEST HARNESS")
         print("=" * 60)
         print(f"Mode: {'DEMO (mock responses)' if DEMO_MODE else 'PRODUCTION (real API calls)'}")
         print(f"File: {file_path}")
@@ -63,10 +63,10 @@ def test_prompt_file(file_path: str, verbose: bool = True) -> dict:
     if verbose:
         print(f"   Generated {len(test_inputs)} inputs")
         print()
-        print("⚖️  Running triplicate judge analysis...")
+        print("⚖️  Running divergence evaluation...")
         print()
     
-    # Run judges
+    # Run evaluation
     results = []
     max_variance = 0.0
     
@@ -84,7 +84,7 @@ def test_prompt_file(file_path: str, verbose: bool = True) -> dict:
             
             if verbose:
                 icon = "✅" if variance < VARIANCE_THRESHOLD else "⚠️ "
-                print(f"       {icon} Variance: {variance:.2f}")
+                print(f"       {icon} Δ: {variance:.2f}")
                 
                 # Show pairwise breakdown
                 if "metrics" in result and "pairwise" in result["metrics"]:
@@ -123,15 +123,15 @@ def test_prompt_file(file_path: str, verbose: bool = True) -> dict:
         print("📊 SUMMARY")
         print("=" * 60)
         print(f"Total tests:   {len(results)}")
-        print(f"Max variance:  {max_variance:.2f}")
-        print(f"Avg variance:  {avg_variance:.2f}")
+        print(f"Max Δ:         {max_variance:.2f}")
+        print(f"Avg Δ:         {avg_variance:.2f}")
         print(f"Threshold:     {VARIANCE_THRESHOLD}")
         print()
         
         if passed:
-            print("✅ WOULD PASS - All variance scores below threshold")
+            print("✅ WOULD PASS - All divergence scores below threshold")
         else:
-            print("❌ WOULD BLOCK - Variance score exceeds threshold")
+            print("❌ WOULD BLOCK - Divergence score exceeds threshold")
         
         print()
         print("=" * 60)
@@ -154,16 +154,16 @@ def run_comparison_test(old_file: str, new_file: str) -> dict:
         Comparison results
     """
     print("=" * 60)
-    print("🔄 GUARDIAN COMPARISON TEST")
+    print("PARITY COMPARISON TEST")
     print("=" * 60)
     
     print(f"\n📁 Old: {old_file}")
     old_result = test_prompt_file(old_file, verbose=False)
-    print(f"   Max variance: {old_result.get('max_variance', 'N/A')}")
+    print(f"   Max Δ: {old_result.get('max_variance', 'N/A')}")
     
     print(f"\n📁 New: {new_file}")
     new_result = test_prompt_file(new_file, verbose=False)
-    print(f"   Max variance: {new_result.get('max_variance', 'N/A')}")
+    print(f"   Max Δ: {new_result.get('max_variance', 'N/A')}")
     
     print()
     print("=" * 60)
@@ -174,16 +174,16 @@ def run_comparison_test(old_file: str, new_file: str) -> dict:
     new_var = new_result.get('max_variance', 0)
     delta = new_var - old_var
     
-    print(f"Old variance: {old_var:.2f}")
-    print(f"New variance: {new_var:.2f}")
-    print(f"Delta:        {delta:+.2f}")
+    print(f"Old Δ: {old_var:.2f}")
+    print(f"New Δ: {new_var:.2f}")
+    print(f"Delta: {delta:+.2f}")
     
     if delta > 0:
-        print("\n⚠️  New prompt has HIGHER variance (potentially more risky)")
+        print("\n⚠️  New prompt has HIGHER divergence (more model disagreement)")
     elif delta < 0:
-        print("\n✅ New prompt has LOWER variance (potentially safer)")
+        print("\n✅ New prompt has LOWER divergence (more model agreement)")
     else:
-        print("\n➡️  No change in variance")
+        print("\n➡️  No change in divergence")
     
     return {
         "old": old_result,
@@ -195,7 +195,7 @@ def run_comparison_test(old_file: str, new_file: str) -> dict:
 def main():
     """Main entry point for test harness."""
     parser = argparse.ArgumentParser(
-        description="Guardian Test Harness - Test prompt files locally",
+        description="Parity Test Harness - Test prompt files locally",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:

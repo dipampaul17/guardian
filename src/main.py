@@ -1,4 +1,4 @@
-"""Main orchestrator for Guardian safety gate."""
+"""Main orchestrator for Parity divergence detection."""
 import os
 import sys
 import json
@@ -93,7 +93,7 @@ def save_audit_report(results: Dict[str, Any], pr_number: int, repo_name: str) -
     audit_dir.mkdir(exist_ok=True)
     
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"guardian_pr{pr_number}_{timestamp}.json"
+    filename = f"parity_pr{pr_number}_{timestamp}.json"
     filepath = audit_dir / filename
     
     audit_data = {
@@ -114,44 +114,44 @@ def save_audit_report(results: Dict[str, Any], pr_number: int, repo_name: str) -
 
 def post_pr_comment(pr, status: str, max_variance: float, details: str = ""):
     """
-    Post a Guardian status comment to the PR.
+    Post a Parity status comment to the PR.
     
     Args:
         pr: GitHub PullRequest object
         status: Status string (PASSED, BLOCKED, etc.)
-        max_variance: Maximum variance score detected
+        max_variance: Maximum divergence score detected
         details: Additional details to include
     """
     emoji = "✅" if "PASS" in status or "APPROVE" in status or "OVERRIDE" in status else "❌"
     
-    comment = f"""## 🛡️ Guardian Safety Gate
+    comment = f"""## Parity Divergence Check
 
 **Status:** {emoji} {status}
-**Max Variance Score:** {max_variance:.2f} / 10
+**Max Divergence (Δ):** {max_variance:.2f} / 10
 **Threshold:** {VARIANCE_THRESHOLD}
 **Mode:** {"DEMO" if DEMO_MODE else "PRODUCTION"}
 
 {details}
 
 ---
-*To bypass this check, an authorized reviewer can comment:* `/guardian override [reason]`
+*To bypass this check, an authorized reviewer can comment:* `/parity override [reason]`
 """
     
     pr.create_issue_comment(comment)
 
 
-def run_guardian() -> int:
+def run_parity() -> int:
     """
-    Main Guardian execution function.
+    Main Parity execution function.
     
     Returns:
         Exit code: 0 for pass, 1 for block/error
     """
     print("=" * 60)
-    print("🛡️  GUARDIAN SAFETY GATE")
+    print("PARITY DIVERGENCE CHECK")
     print("=" * 60)
     print(f"Mode: {'DEMO (3 prompts, mock responses)' if DEMO_MODE else 'PRODUCTION (20 prompts, real API calls)'}")
-    print(f"Variance Threshold: {VARIANCE_THRESHOLD}")
+    print(f"Divergence Threshold: {VARIANCE_THRESHOLD}")
     print()
     
     try:
@@ -183,19 +183,19 @@ def run_guardian() -> int:
         print()
         
         # =========================================================
-        # 2. OVERRIDE CHECK - Check for /guardian override FIRST
+        # 2. OVERRIDE CHECK - Check for /parity override FIRST
         # =========================================================
         print("🔍 Checking for override comments...")
         
         # Check PR body
-        if pr.body and "/guardian override" in pr.body.lower():
+        if pr.body and "/parity override" in pr.body.lower():
             print("✅ Override found in PR description")
             post_pr_comment(pr, "OVERRIDDEN", 0.0, "Override found in PR description.")
             return 0
         
         # Check issue comments
         for comment in pr.get_issue_comments():
-            if "/guardian override" in comment.body.lower():
+            if "/parity override" in comment.body.lower():
                 print(f"✅ Override found in comment by @{comment.user.login}")
                 post_pr_comment(pr, "OVERRIDDEN", 0.0, f"Override by @{comment.user.login}")
                 return 0
@@ -257,8 +257,8 @@ def run_guardian() -> int:
             print(f"   Generated {len(test_inputs)} test inputs")
             print()
             
-            # Run triplicate judge on each input
-            print("⚖️  Running triplicate judge analysis...")
+            # Run divergence evaluation on each input
+            print("⚖️  Running divergence evaluation...")
             file_results = []
             file_max_variance = 0.0
             
@@ -274,7 +274,7 @@ def run_guardian() -> int:
                         file_results.append(result)
                         
                         status_icon = "✅" if variance < VARIANCE_THRESHOLD else "⚠️"
-                        print(f"       {status_icon} Variance: {variance:.2f}")
+                        print(f"       {status_icon} Δ: {variance:.2f}")
                         break
                     except Exception as e:
                         if attempt < MAX_RETRIES - 1:
@@ -303,7 +303,7 @@ def run_guardian() -> int:
             })
             
             print()
-            print(f"   📊 File Max Variance: {file_max_variance:.2f}")
+            print(f"   📊 File Max Δ: {file_max_variance:.2f}")
             print()
         
         # =========================================================
@@ -312,18 +312,18 @@ def run_guardian() -> int:
         print("=" * 60)
         print("📊 FINAL RESULTS")
         print("=" * 60)
-        print(f"Overall Max Variance: {overall_max_variance:.2f}")
+        print(f"Overall Max Δ: {overall_max_variance:.2f}")
         print(f"Threshold: {VARIANCE_THRESHOLD}")
         print()
         
         if overall_max_variance < VARIANCE_THRESHOLD:
             status = "AUTO-APPROVED"
-            print("✅ PASSED - All variance scores below threshold")
+            print("✅ PASSED - All divergence scores below threshold")
             exit_code = 0
         else:
             status = "BLOCKED"
-            print("❌ BLOCKED - Variance score exceeds threshold")
-            print("   A reviewer must comment '/guardian override [reason]' to proceed")
+            print("❌ BLOCKED - Divergence score exceeds threshold")
+            print("   A reviewer must comment '/parity override [reason]' to proceed")
             exit_code = 1
         
         # =========================================================
@@ -342,20 +342,20 @@ def run_guardian() -> int:
         details_lines = ["### Files Analyzed:"]
         for file_result in all_results:
             icon = "✅" if file_result["max_variance"] < VARIANCE_THRESHOLD else "⚠️"
-            details_lines.append(f"- {icon} `{file_result['file']}` — variance: {file_result['max_variance']:.2f}")
+            details_lines.append(f"- {icon} `{file_result['file']}` — Δ: {file_result['max_variance']:.2f}")
         
         details = "\n".join(details_lines)
         post_pr_comment(pr, status, overall_max_variance, details)
         
         print()
-        print(f"🏁 Guardian complete. Exit code: {exit_code}")
+        print(f"🏁 Parity complete. Exit code: {exit_code}")
         return exit_code
         
     except Exception as e:
         # =========================================================
         # ERROR HANDLING - Log crash to PR
         # =========================================================
-        error_msg = f"Guardian crashed: {str(e)}"
+        error_msg = f"Parity crashed: {str(e)}"
         print(f"\n❌ ERROR: {error_msg}", file=sys.stderr)
         print(traceback.format_exc(), file=sys.stderr)
         
@@ -371,7 +371,7 @@ def run_guardian() -> int:
                 repo = github.get_repo(repo_name)
                 pr = repo.get_pull(pr_number)
                 
-                error_comment = f"""## 🛡️ Guardian Safety Gate
+                error_comment = f"""## Parity Divergence Check
 
 **Status:** ❌ ERROR
 
@@ -392,7 +392,7 @@ Please check the action logs for details.
 
 def run_local(prompt_file: str = "prompts/system.txt") -> int:
     """
-    Run Guardian locally without GitHub context.
+    Run Parity locally without GitHub context.
     
     Args:
         prompt_file: Path to prompt file to test
@@ -401,7 +401,7 @@ def run_local(prompt_file: str = "prompts/system.txt") -> int:
         Exit code: 0 for pass, 1 for fail
     """
     print("=" * 60)
-    print("🛡️  GUARDIAN SAFETY GATE (LOCAL MODE)")
+    print("PARITY DIVERGENCE CHECK (LOCAL MODE)")
     print("=" * 60)
     print(f"Mode: {'DEMO' if DEMO_MODE else 'PRODUCTION'}")
     print(f"File: {prompt_file}")
@@ -425,8 +425,8 @@ def run_local(prompt_file: str = "prompts/system.txt") -> int:
     print(f"   Generated {len(test_inputs)} inputs")
     print()
     
-    # Run judges
-    print("⚖️  Running triplicate judges...")
+    # Run divergence evaluation
+    print("⚖️  Running divergence evaluation...")
     results = []
     max_variance = 0.0
     
@@ -440,7 +440,7 @@ def run_local(prompt_file: str = "prompts/system.txt") -> int:
             results.append(result)
             
             icon = "✅" if variance < VARIANCE_THRESHOLD else "⚠️"
-            print(f"       {icon} Variance: {variance:.2f}")
+            print(f"       {icon} Δ: {variance:.2f}")
         except Exception as e:
             print(f"       ❌ Error: {e}")
             results.append({"variance": 10.0, "error": str(e), "input": test_input})
@@ -451,7 +451,7 @@ def run_local(prompt_file: str = "prompts/system.txt") -> int:
     print("=" * 60)
     print("📊 RESULTS")
     print("=" * 60)
-    print(f"Max Variance: {max_variance:.2f}")
+    print(f"Max Δ: {max_variance:.2f}")
     print(f"Threshold: {VARIANCE_THRESHOLD}")
     print()
     
@@ -473,11 +473,11 @@ def run_local(prompt_file: str = "prompts/system.txt") -> int:
 if __name__ == "__main__":
     # Check if running in GitHub Actions context
     if os.getenv("GITHUB_ACTIONS") == "true":
-        exit_code = run_guardian()
+        exit_code = run_parity()
     else:
         # Local mode - use command line arg or default
         import argparse
-        parser = argparse.ArgumentParser(description="Guardian Safety Gate")
+        parser = argparse.ArgumentParser(description="Parity Divergence Check")
         parser.add_argument("prompt_file", nargs="?", default="prompts/system.txt",
                           help="Path to prompt file to test (local mode)")
         args = parser.parse_args()

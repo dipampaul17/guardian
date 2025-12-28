@@ -8,12 +8,12 @@ from github.PullRequest import PullRequest
 
 def post_pr_comment(pr_number: int, status: str, score: float, audit_url: str):
     """
-    Post a Guardian Safety Gate comment to a PR.
+    Post a Parity status comment to a PR.
     
     Args:
         pr_number: Pull request number
         status: Status string (e.g., "PASSED", "BLOCKED")
-        score: Variance score (0-10)
+        score: Divergence score (0-10)
         audit_url: URL to audit report
     """
     token = os.getenv("GITHUB_TOKEN")
@@ -28,11 +28,11 @@ def post_pr_comment(pr_number: int, status: str, score: float, audit_url: str):
     repo = github.get_repo(repo_name)
     pr = repo.get_pull(pr_number)
     
-    message = f"""## Guardian Safety Gate
+    message = f"""## Parity Divergence Check
 **Status:** {status}
-**Variance Score:** {score}/10
+**Divergence (Δ):** {score}/10
 **Audit:** [Link]({audit_url})
-**Action:** To bypass, comment `/guardian override [reason]`"""
+**Action:** To bypass, comment `/parity override [reason]`"""
     
     pr.create_issue_comment(message)
 
@@ -179,10 +179,10 @@ class GitHubClient:
             pr = self.get_pr()
         
         # Approve PR
-        pr.create_review(event="APPROVE", body="Guardian override approved")
+        pr.create_review(event="APPROVE", body="Parity override approved")
         
         # Merge PR
-        pr.merge(commit_message="Merged via Guardian override")
+        pr.merge(commit_message="Merged via Parity override")
     
     def block_pr(self, reason: str, pr: Optional[PullRequest] = None):
         """
@@ -195,7 +195,7 @@ class GitHubClient:
         if not pr:
             pr = self.get_pr()
         
-        message = f"🚫 **Guardian Safety Gate: BLOCKED**\n\n{reason}\n\nPlease review and fix the issues before merging."
+        message = f"🚫 **Parity Divergence Check: BLOCKED**\n\n{reason}\n\nPlease review and fix the issues before merging."
         self.post_comment(message, pr)
         
         # Request changes
