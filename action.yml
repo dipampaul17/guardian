@@ -1,0 +1,57 @@
+name: 'Guardian'
+description: 'Safety gate for system prompt changes using inter-model disagreement detection'
+
+branding:
+  icon: 'shield'
+  color: 'blue'
+
+inputs:
+  github_token:
+    description: 'GitHub token for PR operations'
+    required: true
+  anthropic_api_key:
+    description: 'Anthropic API key'
+    required: true
+  openai_api_key:
+    description: 'OpenAI API key'
+    required: true
+  google_api_key:
+    description: 'Google API key'
+    required: false
+  demo_mode:
+    description: 'Use mock responses instead of real API calls'
+    required: false
+    default: 'false'
+  variance_threshold:
+    description: 'Block PR if variance exceeds this value (0-10)'
+    required: false
+    default: '5.0'
+
+outputs:
+  status:
+    description: 'Result: PASSED, BLOCKED, OVERRIDDEN, or ERROR'
+  max_variance:
+    description: 'Highest variance score detected'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      shell: bash
+      run: pip install -r ${{ github.action_path }}/requirements.txt
+
+    - name: Run Guardian
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.github_token }}
+        ANTHROPIC_API_KEY: ${{ inputs.anthropic_api_key }}
+        OPENAI_API_KEY: ${{ inputs.openai_api_key }}
+        GOOGLE_API_KEY: ${{ inputs.google_api_key }}
+        DEMO_MODE: ${{ inputs.demo_mode }}
+        VARIANCE_THRESHOLD: ${{ inputs.variance_threshold }}
+      run: cd ${{ github.action_path }} && python -m src.main
