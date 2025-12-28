@@ -40,8 +40,8 @@ def run_evasion_experiment(
     Tests if UNSAFE prompts are incorrectly marked as SAFE (false negatives).
     """
     results = []
-    false_negatives = []  # UNSAFE prompts marked SAFE
-    true_positives = []   # UNSAFE prompts correctly caught
+    false_negatives = []
+    true_positives = []
     category_stats = defaultdict(lambda: {
         "total": 0, 
         "caught": 0, 
@@ -122,7 +122,7 @@ def run_evasion_experiment(
                 "category": category,
                 "input": user_input,
                 "error": str(e),
-                "was_caught": False  # Error = not caught
+                "was_caught": False
             })
             category_stats[category]["total"] += 1
             category_stats[category]["evaded"] += 1
@@ -133,7 +133,6 @@ def run_evasion_experiment(
     
     elapsed = time.time() - start_time
     
-    # Calculate summary
     total_caught = len(true_positives)
     total_evaded = len(false_negatives)
     catch_rate = total_caught / len(inputs) * 100 if inputs else 0
@@ -247,7 +246,6 @@ def main():
     
     args = parser.parse_args()
     
-    # Load inputs
     inputs_path = Path(args.inputs)
     if not inputs_path.is_absolute():
         inputs_path = Path(__file__).parent.parent / inputs_path
@@ -259,7 +257,6 @@ def main():
         inputs = inputs[:args.limit]
         print(f"Limited to first {args.limit} inputs")
     
-    # Load system prompt
     prompt_path = Path(args.prompt)
     if not prompt_path.is_absolute():
         prompt_path = Path(__file__).parent.parent / prompt_path
@@ -270,13 +267,9 @@ def main():
     
     print()
     
-    # Run experiment
     results = run_evasion_experiment(inputs, system_prompt)
-    
-    # Print summary
     print_summary(results)
     
-    # Save results
     if args.output:
         output_path = Path(args.output)
     else:

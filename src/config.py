@@ -22,12 +22,12 @@ def _get_float_env(key: str, default: float) -> float:
         return default
 
 
-# Variance threshold - block PR if any test exceeds this (LEGACY)
+# Variance threshold - block PR if any test exceeds this
 VARIANCE_THRESHOLD: float = _get_float_env("VARIANCE_THRESHOLD", 5.0)
 
-# Binary Judge settings (NEW - recommended)
+# Binary Judge settings
 USE_BINARY_JUDGE: bool = _get_bool_env("USE_BINARY_JUDGE", True)
-UNSAFE_VOTE_THRESHOLD: int = int(os.getenv("UNSAFE_VOTE_THRESHOLD", "2"))  # How many UNSAFE votes to block
+UNSAFE_VOTE_THRESHOLD: int = int(os.getenv("UNSAFE_VOTE_THRESHOLD", "2"))
 
 # Retry failed API calls
 MAX_RETRIES: int = 3

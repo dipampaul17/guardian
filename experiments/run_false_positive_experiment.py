@@ -1,16 +1,9 @@
 #!/usr/bin/env python3
 """
-Experiment: Inter-Model Disagreement False Positive Detection
+False Positive Detection Experiment.
 
-This experiment tests 50 adversarial inputs specifically designed to trigger
-false positives in the Guardian's detection system.
-
-These are SAFE prompts that may cause models to disagree, potentially triggering
-incorrect blocks.
-
-Supports two modes:
-1. Binary Classification (NEW): LLM-as-judge approach - measures policy compliance
-2. Variance-based (LEGACY): Text similarity comparison - measures textual difference
+Tests adversarial inputs designed to trigger false positives in Guardian.
+Supports binary classification and variance-based detection modes.
 """
 
 import os
@@ -22,7 +15,6 @@ from datetime import datetime
 from collections import defaultdict
 from typing import Dict, List, Any
 
-# Add parent to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.config import DEMO_MODE, VARIANCE_THRESHOLD, USE_BINARY_JUDGE, UNSAFE_VOTE_THRESHOLD
@@ -94,12 +86,10 @@ def run_experiment(
         print(f"         Input: {user_input[:60]}...")
         
         try:
-            # Use the unified judge_prompt function
             judge_result = judge_prompt(system_prompt, user_input, use_binary=use_binary)
             responses = judge_result['responses']
             
             if use_binary:
-                # Binary classification mode
                 is_flagged = judge_result['is_unsafe']
                 unsafe_votes = judge_result['unsafe_votes']
                 safe_votes = judge_result['safe_votes']
@@ -128,12 +118,10 @@ def run_experiment(
                 else:
                     print(f"         ✅ Passed. Votes: {safe_votes}/3 SAFE, {unsafe_votes}/3 UNSAFE")
                 
-                # Show individual verdicts
                 verdict_str = " | ".join([f"{k}: {v.get('verdict', '?')}" for k, v in verdicts.items()])
                 print(f"         Verdicts: [{verdict_str}]")
                 
             else:
-                # Legacy variance mode
                 max_variance = judge_result['variance']
                 avg_variance = judge_result['avg_variance']
                 metrics = judge_result['metrics']
@@ -162,7 +150,6 @@ def run_experiment(
                 else:
                     print(f"         ✅ Passed. Variance: {max_variance:.2f}")
                 
-                # Show pairwise breakdown
                 pairwise = metrics.get('pairwise', {})
                 pairwise_str = " | ".join([f"{k}: {v:.2f}" for k, v in pairwise.items()])
                 print(f"         Pairwise: [{pairwise_str}]")
@@ -180,19 +167,17 @@ def run_experiment(
                 "category": category,
                 "input": user_input,
                 "error": str(e),
-                "is_false_positive": True  # Errors count as false positives
+                "is_false_positive": True
             })
             category_stats[category]["total"] += 1
             category_stats[category]["false_positives"] += 1
             print()
         
-        # Rate limiting
         if not DEMO_MODE and i < len(inputs):
             time.sleep(0.5)
     
     elapsed = time.time() - start_time
     
-    # Calculate summary statistics
     summary = {
         "timestamp": datetime.now().isoformat(),
         "mode": "DEMO" if DEMO_MODE else "PRODUCTION",
@@ -220,7 +205,6 @@ def run_experiment(
             "avg": round(sum(all_variances) / len(all_variances), 2) if all_variances else 0
         }
     
-    # Category breakdown
     for cat, stats in category_stats.items():
         cat_summary = {
             "total": stats["total"],
@@ -233,7 +217,6 @@ def run_experiment(
             cat_summary["avg_variance"] = round(sum(stats["variances"]) / len(stats["variances"]), 2)
         summary["by_category"][cat] = cat_summary
     
-    # Expected variance breakdown
     for result in results:
         exp_var = result.get('expected_variance', 'unknown')
         summary["by_expected_variance"][exp_var]["total"] += 1
@@ -382,15 +365,13 @@ Examples:
     
     args = parser.parse_args()
     
-    # Determine detection mode
     if args.variance:
         use_binary = False
     elif args.binary:
         use_binary = True
     else:
-        use_binary = USE_BINARY_JUDGE  # Use config default
+        use_binary = USE_BINARY_JUDGE
     
-    # Load inputs
     inputs_path = Path(args.inputs)
     if not inputs_path.is_absolute():
         inputs_path = Path(__file__).parent.parent / inputs_path
@@ -402,7 +383,6 @@ Examples:
         inputs = inputs[:args.limit]
         print(f"Limited to first {args.limit} inputs")
     
-    # Load system prompt
     prompt_path = Path(args.prompt)
     if not prompt_path.is_absolute():
         prompt_path = Path(__file__).parent.parent / prompt_path
@@ -413,13 +393,9 @@ Examples:
     
     print()
     
-    # Run experiment
     results = run_experiment(inputs, system_prompt, args.threshold, use_binary=use_binary)
-    
-    # Print summary
     print_summary(results)
     
-    # Save results
     if args.output:
         output_path = Path(args.output)
     else:
@@ -435,7 +411,6 @@ Examples:
     print()
     print(f"📁 Full results saved to: {output_path}")
     
-    # Return exit code based on false positive rate
     fp_rate = results['summary']['false_positive_rate']
     if fp_rate > 50:
         print("\n❌ HIGH false positive rate detected - system needs tuning!")
