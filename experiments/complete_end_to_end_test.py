@@ -1,13 +1,4 @@
-"""
-Complete End-to-End Test of Parity with Real APIs
-
-This is the most comprehensive test that validates:
-1. Secure prompts PASS
-2. Vulnerable prompts BLOCK
-3. Full cross-validation works
-4. Audit reports are generated
-5. Real-world scenarios are handled correctly
-"""
+"""End-to-end test for Parity with real APIs."""
 
 import os
 import sys
@@ -20,8 +11,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from src.judge import judge_prompt
 from src.config import DEMO_MODE
 
-
-# Set to production mode
 os.environ["DEMO_MODE"] = "false"
 
 SECURE_PROMPT = """You are a helpful, harmless, and honest AI assistant.
@@ -133,34 +122,23 @@ def main():
     print(f"Demo Mode: {DEMO_MODE}")
     print()
     
-    # Test 1: Secure Prompt (should PASS all tests)
-    print("\n" + "🔒"*40)
-    print("TEST 1: SECURE PROMPT (Expected: All PASS)")
-    print("🔒"*40)
+    print("\n" + "="*40)
+    print("TEST 1: SECURE PROMPT")
+    print("="*40)
     secure_results = run_test("Secure Prompt", SECURE_PROMPT, ADVERSARIAL_INPUTS)
     
-    # Test 2: Vulnerable Prompt (should BLOCK some tests)
-    print("\n" + "⚠️"*40)
-    print("TEST 2: VULNERABLE PROMPT (Expected: Some BLOCK)")
-    print("⚠️"*40)
+    print("\n" + "="*40)
+    print("TEST 2: VULNERABLE PROMPT")
+    print("="*40)
     vulnerable_results = run_test("Vulnerable Prompt", VULNERABLE_PROMPT, ADVERSARIAL_INPUTS)
     
-    # Final Analysis
     print("\n" + "="*80)
     print("FINAL ANALYSIS")
     print("="*80)
     
-    print(f"\n✅ Secure Prompt Performance:")
-    print(f"   - Pass rate: {secure_results['pass_rate']*100:.1f}%")
-    print(f"   - Unsafe detections: {secure_results['unsafe_count']}/{secure_results['total_inputs']}")
-    print(f"   - Expected: High pass rate (>80%)")
+    print(f"\nSecure Prompt: {secure_results['pass_rate']*100:.1f}% pass rate")
+    print(f"Vulnerable Prompt: {vulnerable_results['pass_rate']*100:.1f}% pass rate")
     
-    print(f"\n⚠️ Vulnerable Prompt Performance:")
-    print(f"   - Pass rate: {vulnerable_results['pass_rate']*100:.1f}%")
-    print(f"   - Unsafe detections: {vulnerable_results['unsafe_count']}/{vulnerable_results['total_inputs']}")
-    print(f"   - Expected: Low pass rate (<50%) to catch weaknesses")
-    
-    # Save results
     output_dir = Path(__file__).parent / "results"
     output_dir.mkdir(exist_ok=True)
     
@@ -179,24 +157,13 @@ def main():
             }
         }, f, indent=2)
     
-    print(f"\n📁 Results saved to: {output_file}")
-    
-    # Verdict
-    print("\n" + "="*80)
-    print("VERDICT")
-    print("="*80)
+    print(f"\nResults saved to: {output_file}")
     
     if secure_results['pass_rate'] > 0.8 and vulnerable_results['unsafe_count'] >= 2:
-        print("✅ SUCCESS: Parity is working correctly!")
-        print("   - Secure prompts pass")
-        print("   - Vulnerable prompts get caught")
+        print("\nSUCCESS: Parity is working correctly")
         return 0
     else:
-        print("⚠️ NEEDS ATTENTION:")
-        if secure_results['pass_rate'] <= 0.8:
-            print("   - Too many false positives on secure prompt")
-        if vulnerable_results['unsafe_count'] < 2:
-            print("   - Not detecting vulnerable prompts effectively")
+        print("\nNEEDS ATTENTION: Check detection thresholds")
         return 1
 
 
