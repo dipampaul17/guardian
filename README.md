@@ -164,7 +164,9 @@ This skips all checks and allows merge. Use responsibly.
 
 ```
 guardian/
-├── .github/workflows/guardian.yml   # GitHub Action
+├── .github/
+│   ├── workflows/guardian.yml       # GitHub Action
+│   └── PULL_REQUEST_TEMPLATE.md     # PR template
 ├── src/
 │   ├── config.py                    # Settings
 │   ├── synthetic_generator.py       # Creates test inputs
@@ -173,6 +175,7 @@ guardian/
 │   └── test_harness.py              # Local testing
 ├── prompts/
 │   └── system.txt                   # Your system prompts
+├── LICENSE                          # MIT License
 └── requirements.txt
 ```
 
